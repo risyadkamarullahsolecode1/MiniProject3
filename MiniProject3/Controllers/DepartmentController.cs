@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MiniProject3.Interfaces;
 using MiniProject3.Models;
+using MiniProject3.Services;
 
 namespace MiniProject3.Controllers
 {
@@ -16,54 +17,66 @@ namespace MiniProject3.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Department>> GetDepartments()
+        public async Task<ActionResult<IEnumerable<Employee>>> GetAllDepartment()
         {
-            return Ok(_departmentService.GetAllDepartments());
+            return Ok(await _departmentService.GetAllDepartments());
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Department> GetDepartment(int id)
+        public async Task<ActionResult<Employee>> GetDepartmentById(int id)
         {
-            var department = _departmentService.GetDepartmentById(id);
-            if (department == null)
+            var employee = await _departmentService.GetDepartmentById(id);
+            if (employee == null)
             {
                 return NotFound();
             }
-            return Ok(department);
+            return Ok(employee);
         }
 
         [HttpPost]
-        public ActionResult<Department> AddDepartment([FromBody] DepartmentDto departmentDto)
+        public async Task<ActionResult<Employee>> AddDepartment(Department department)
         {
-            var department = new Department
-            {
-                Deptname = departmentDto.Deptname
-            };
-            var newDepartment = _departmentService.AddDepartment(department);
-            return CreatedAtAction(nameof(GetDepartment), new { id = newDepartment.Deptno }, newDepartment);
+            var createdDepartment = await _departmentService.AddDepartment(department);
+            return CreatedAtAction(nameof(GetDepartmentById), new { id = createdDepartment.Deptno }, createdDepartment);
         }
 
         [HttpPut("{id}")]
-        public IActionResult PutDepartment(int id, Department department)
+        public async Task<IActionResult> UpdateDepartment(int id, Department department)
         {
-            var updatedDepartment = _departmentService.UpdateDepartment(id, department);
-            if (updatedDepartment == null)
+            if (id != department.Deptno)
             {
                 return BadRequest();
             }
-            return Ok(updatedDepartment);
-        }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteDepartment(int id)
-        {
-            var success = _departmentService.DeleteDepartment(id);
-            if (!success)
+            var updatedDepartment = await _departmentService.UpdateDepartment(id, department);
+            if (updatedDepartment == null)
             {
                 return NotFound();
             }
             return NoContent();
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteDepartment(int id)
+        {
+            var deleted = await _departmentService.DeleteDepartment(id);
+            if (!deleted)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+
+        //additional method controller
+        [HttpGet("more-10-employees")]
+        public async Task<ActionResult<IEnumerable<object>>> GetDepartmentsWithMoreThan10Employees()
+        {
+            return Ok(await _departmentService.GetDepartmentsWithMoreThan10Employees());
+        }
+        [HttpGet("it-Department")]
+        public async Task<ActionResult<IEnumerable<object>>> GetEmployeeDetailsByDepartment()
+        {
+            return Ok(await _departmentService.GetEmployeeDetailsByDepartment("IT"));
+        }
     }
 }

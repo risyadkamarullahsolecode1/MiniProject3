@@ -13,47 +13,64 @@ namespace MiniProject3.Services
             _context = context;
         }
 
-        public List<Department> GetAllDepartments()
+        public async Task<IEnumerable<Department>> GetAllDepartments()
         {
-            return _context.Departments.ToList();
+            return await _context.Departments.ToListAsync();
         }
 
-        public Department GetDepartmentById(int id)
+        public async Task<Department> GetDepartmentById(int id)
         {
-            return _context.Departments.Find(id);
+            return await _context.Departments.FindAsync(id);
         }
 
-        public Department AddDepartment(Department department)
+        public async Task<Department> AddDepartment(Department department)
         {
             _context.Departments.Add(department);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return department;
         }
 
-        public Department UpdateDepartment(int id, Department department)
+        public async Task<Department> UpdateDepartment(int id, Department department)
         {
-            if (id != department.Deptno)
-            {
-                return null;
-            }
-
-            _context.Entry(department).State = EntityState.Modified;
-            _context.SaveChanges();
+            _context.Departments.Update(department);
+            await _context.SaveChangesAsync();
             return department;
         }
 
-        public bool DeleteDepartment(int id)
+        public async Task<bool> DeleteDepartment(int id)
         {
-            var department = _context.Departments.Find(id);
+            var department = await _context.Departments.FindAsync(id);
             if (department == null)
             {
                 return false;
             }
 
             _context.Departments.Remove(department);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return true;
         }
 
+        //method Get Department with more than 10 employee
+        public async Task<IEnumerable<object>> GetDepartmentsWithMoreThan10Employees()
+        {
+            return await _context.Employees
+                .GroupBy(e => e.Deptno)
+                .Where(g => g.Count() > 10)
+                .Select(g => new {Deptno = g.Key, EmployeeCount = g.Count() })
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<object>> GetEmployeeDetailsByDepartment(string departmentName)
+        {
+            return await _context.Employees
+                .Join(_context.Departments, e => e.Deptno, d => d.Deptno, (e, d) => new { e, d })
+                .Where(x => x.d.Deptname == departmentName)
+                .Select(x => new
+                {
+                    x.e.Fname,
+                    x.e.Lname,
+                    x.e.Address
+                })
+                .ToListAsync();
+        }
     }
 }

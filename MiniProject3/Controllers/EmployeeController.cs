@@ -8,88 +8,92 @@ namespace MiniProject3.Controllers
     [ApiController]
     public class EmployeeController : Controller
     {
-            private readonly IEmployeeService _employeeService;
+        private readonly IEmployeeService _employeeService;
 
-            public EmployeeController(IEmployeeService employeeService)
+        public EmployeeController(IEmployeeService employeeService)
+        {
+            _employeeService = employeeService;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetAllEmployeesAsync()
+        {
+            return Ok(await _employeeService.GetAllEmployees());
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Employee>> GetEmployeeByIdAsync(int id)
+        {
+            var employee = await _employeeService.GetEmployeeById(id);
+            if (employee == null)
             {
-                _employeeService = employeeService;
+                return NotFound();
+            }
+            return Ok(employee);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Employee>> AddEmployee(Employee employee)
+        {
+            var createdEmployee = await _employeeService.AddEmployee(employee);
+            return CreatedAtAction(nameof(GetEmployeeByIdAsync), new { id = createdEmployee.Empno }, createdEmployee);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEmployee(int id, Employee employee)
+        {
+            if (id != employee.Empno)
+            {
+                return BadRequest();
             }
 
-            [HttpGet]
-            public ActionResult<List<Employee>> GetAllEmployee()
+            var updatedEmployee = await _employeeService.UpdateEmployee(employee);
+            if (updatedEmployee == null)
             {
-                return Ok(_employeeService.GetAllEmployees());
+                return NotFound();
             }
 
-            [HttpGet("{id}")]
-            public ActionResult<Employee> GetEmployeeById(int id)
-            {
-                var employee = _employeeService.GetEmployeeById(id);
-                if (employee == null)
-                {
-                    return NotFound();
-                }
-                return Ok(employee);
-            }
+            return NoContent();
+        }
 
-            [HttpPost]
-            public IActionResult AddEmployee(EmployeeDto employeeDto)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            var deleted = await _employeeService.DeleteEmployee(id);
+            if (!deleted)
             {
-                var employee = new Employee
-                {
-                    Empno = employeeDto.Empno,
-                    Fname = employeeDto.Fname,
-                    Lname = employeeDto.Lname,
-                    Address = employeeDto.Address,
-                    Dob = employeeDto.Dob,
-                    Sex = employeeDto.Sex,
-                    Position = employeeDto.Position,
-                    Deptno = employeeDto.Deptno
-                };
+                return NotFound();
+            }
+            return NoContent();
+        }
+        // additional method controller
+        [HttpGet("brics")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesBrics()
+        {
+            return Ok(await _employeeService.GetEmployeesBrics());
+        }
 
-                var newEmployee = _employeeService.AddEmployee(employee);
-                return CreatedAtAction(nameof(GetEmployeeById), new { id = newEmployee.Empno }, newEmployee);
-            }
+        [HttpGet(("born-1980-1990"))]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeeBornBetween1980And1990()
+        {
+            return Ok(await _employeeService.GetEmployeeBornBetween1980And1990());
+        }
 
-            [HttpPut("{id}")]
-            public IActionResult PutEmployee(int id, Employee employee)
-            {
-                var updatedEmployee = _employeeService.UpdateEmployee(id, employee);
-                if (updatedEmployee == null)
-                {
-                    return BadRequest();
-                }
-                return Ok(updatedEmployee);
-            }
+        [HttpGet("female-born-after1990")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetFemaleEmployeeBornAfter1990()
+        {
+            return Ok(await _employeeService.GetFemaleEmployeeBornAfter1990());
+        }
 
-            [HttpDelete("{id}")]
-            public IActionResult DeleteEmployee(int id)
-            {
-                var success = _employeeService.DeleteEmployee(id);
-                if (!success)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
-
-            [HttpGet("brics")]
-            public ActionResult<List<Employee>> GetBricsEmployees()
-            {
-                return Ok(_employeeService.GetBricsEmployees());
-            }
-
-            [HttpGet("born1980-1990")]
-            public ActionResult<List<Employee>> GetEmployeeBornBetween1980And1990()
-            {
-                var employees = _employeeService.GetEmployeeBornBetween1980And1990();
-                return Ok(employees);
-            }
-            [HttpGet("female-born-after1990")]
-            public ActionResult<IEnumerable<Employee>> GetFemaleEmployeeBornAfter1990()
-            {
-                var employees = _employeeService.GetFemaleEmployeeBornAfter1990();
-                return Ok(employees);
-            }
+        [HttpGet("female-managers")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetFemaleManagers()
+        {
+            return Ok(await _employeeService.GetFemaleManagers());
+        }
+        [HttpGet("non-managers")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetNonManagerEmployees()
+        {
+            return Ok(await _employeeService.GetNonManagerEmployees());
+        }
     }
 }

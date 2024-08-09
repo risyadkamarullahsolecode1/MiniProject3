@@ -4,10 +4,15 @@ namespace MiniProject3.Interfaces
 {
     public interface IProjectService
     {
-        List<Project> GetAllProjects();
-        Project GetProjectById(int id);
-        Project AddProject(Project project);
-        Project UpdateProject(int id, Project project);
-        bool DeleteProject(int id);
+        Task<IEnumerable<Project>> GetAllProjects();
+        Task<Project> GetProjectById(int id);
+        Task<Project> AddProject(Project project);
+        Task<Project> UpdateProject(int id, Project project);
+        Task<bool> DeleteProject(int id);
+
+        //method
+        Task<IEnumerable<Project>> GetProjectsManagedByPlanning();
+        Task<IEnumerable<Project>> GetProjectsWithNoEmployees();
+        Task<IEnumerable<object>> GetProjectsManagedByFemaleManagers();
     }
 }

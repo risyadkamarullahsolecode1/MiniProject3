@@ -5,15 +5,17 @@ namespace MiniProject3.Interfaces
 {
     public interface IEmployeeService
     {
-        List<Employee> GetAllEmployees();
-        Employee GetEmployeeById(int id);
-        Employee AddEmployee(Employee employee);
-        Employee UpdateEmployee(int id, Employee employee);
-        bool DeleteEmployee(int id);
+        Task<IEnumerable<Employee>> GetAllEmployees();
+        Task<Employee> GetEmployeeById(int id);
+        Task<Employee> AddEmployee(Employee employee);
+        Task<Employee> UpdateEmployee(Employee employee);
+        Task<bool> DeleteEmployee(int id);
 
-        // methods
-        List<Employee> GetBricsEmployees();
-        List<Employee> GetEmployeeBornBetween1980And1990();
-        List<Employee> GetFemaleEmployeeBornAfter1990();
+        // method
+        Task<IEnumerable<Employee>> GetEmployeesBrics();
+        Task<IEnumerable<Employee>> GetEmployeeBornBetween1980And1990();
+        Task<IEnumerable<Employee>> GetFemaleEmployeeBornAfter1990();
+        Task <IEnumerable<Employee>> GetFemaleManagers();
+        Task <IEnumerable<Employee>> GetNonManagerEmployees();
     }
 }

@@ -13,49 +13,41 @@ namespace MiniProject3.Services
             _context = context;
         }
 
-        public List<Workson> GetAllWorkOns()
+        public async Task<IEnumerable<Workson>> GetAllWorkOn()
         {
-            return _context.Worksons.ToList();
+            return await _context.Worksons.ToListAsync();
         }
 
-        public Workson GetWorkOnById(int empNo, int projNo)
+        public async Task<Workson> GetWorkOnById(int empNo, int projNo)
         {
-            return _context.Worksons.Find(empNo, projNo);
+            return await _context.Worksons.FindAsync(empNo, projNo);
         }
 
-        public Workson AddWorkOn(Workson workson)
+        public async Task<Workson> AddWorkOn(Workson workson)
         {
             _context.Worksons.Add(workson);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return workson;
         }
 
-        public Workson UpdateWorkOn(int empNo, int projNo, Workson workson)
+        public async Task<Workson> UpdateWorkOn(int empNo, int projNo, Workson workson)
         {
-            if (empNo != workson.Empno || projNo != workson.Projno)
-            {
-                return null;
-            }
-
-            _context.Entry(workson).State = EntityState.Modified;
-            _context.SaveChanges();
+            _context.Worksons.Update(workson);
+            await _context.SaveChangesAsync();
             return workson;
         }
 
-        public bool DeleteWorkOn(int empNo, int projNo)
+        public async Task<bool> DeleteWorkOn(int empNo, int projNo)
         {
-            var workOn = _context.Worksons
-                .FirstOrDefault(wo => wo.Empno == empNo && wo.Projno == projNo);
-
-            if (workOn == null)
+            var workson = await _context.Worksons.FindAsync(empNo, projNo);
+            if (workson == null)
             {
                 return false;
             }
 
-            _context.Worksons.Remove(workOn);
-            _context.SaveChanges();
+            _context.Worksons.Remove(workson);
+            await _context.SaveChangesAsync();
             return true;
         }
-
     }
 }

@@ -4,11 +4,14 @@ namespace MiniProject3.Interfaces
 {
     public interface IDepartmentService
     {
-        List<Department> GetAllDepartments();
-        Department GetDepartmentById(int id);
-        Department AddDepartment(Department department);
-        Department UpdateDepartment(int id, Department department);
-        bool DeleteDepartment(int id);
+        Task<IEnumerable<Department>> GetAllDepartments();
+        Task<Department> GetDepartmentById(int id);
+        Task<Department> AddDepartment(Department department);
+        Task<Department> UpdateDepartment(int id, Department department);
+        Task<bool> DeleteDepartment(int id);
 
+        //method
+        Task<IEnumerable<object>> GetDepartmentsWithMoreThan10Employees();
+        Task<IEnumerable<object>> GetEmployeeDetailsByDepartment(string departmentName);
     }
 }

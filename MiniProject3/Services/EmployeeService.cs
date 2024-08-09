@@ -1,4 +1,5 @@
-﻿using MiniProject3.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using MiniProject3.Interfaces;
 using MiniProject3.Models;
 
 namespace MiniProject3.Services
@@ -12,74 +13,82 @@ namespace MiniProject3.Services
             _context = context;
         }
 
-        public List<Employee> GetAllEmployees()
+        public async Task<IEnumerable<Employee>> GetAllEmployees()
         {
-            return _context.Employees.ToList();
+            return await _context.Employees.ToListAsync();
         }
 
-        public Employee GetEmployeeById(int id)
+        public async Task<Employee> GetEmployeeById(int id)
         {
-            return _context.Employees.Find(id);
+            return await _context.Employees.FindAsync(id);
         }
 
-        public Employee AddEmployee(Employee employee)
+        public async Task<Employee> AddEmployee(Employee employee)
         {
-            var departmentExists = _context.Departments.Any(d => d.Deptno == employee.Deptno);
-
-            if (!departmentExists)
-            {
-                throw new Exception($"Department with Deptno {employee.Deptno} does not exist.");
-            }
-
             _context.Employees.Add(employee);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return employee;
         }
-        public Employee UpdateEmployee(int id, Employee employee)
-        {
-            if (id != employee.Empno)
-            {
-                return null;
-            }
-            _context.Entry(employee).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-            _context.SaveChanges();
-            return employee;
 
-        }
-        public bool DeleteEmployee(int id)
+        public async Task<Employee> UpdateEmployee(Employee employee)
         {
-            var employee = _context.Employees.Find(id);
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+            return employee;
+        }
+
+        public async Task<bool> DeleteEmployee(int id)
+        {
+            var employee = await _context.Employees.FindAsync(id);
             if (employee == null)
             {
                 return false;
             }
+
             _context.Employees.Remove(employee);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return true;
         }
 
-        // methods
-        public List<Employee> GetBricsEmployees()
+        // method
+        public async Task<IEnumerable<Employee>> GetEmployeesBrics()
         {
-            var bricsCountry = new List<string> { "Brazil", "Russia", "India", "China", "South Africa" };
-            return _context.Employees
-                .Where(e => bricsCountry.Contains(e.Address))
-                .OrderBy(e => e.Lname)
-                .ToList();
+            var bricsCountries = new List<string> { "Brazil", "Russia", "India", "China", "South Africa" };
+            return await _context.Employees
+                                 .Where(e => bricsCountries.Contains(e.Address))
+                                 .OrderBy(e => e.Lname)
+                                 .ToListAsync();
         }
 
-        public List<Employee> GetEmployeeBornBetween1980And1990()
+        public async Task<IEnumerable<Employee>> GetEmployeeBornBetween1980And1990()
         {
-            return _context.Employees
-                .Where(e => e.Dob >= new DateTime(1980,1,1) && e.Dob <= new DateTime(1990,12,31))
-                .ToList();
+            return await _context.Employees
+                                 .Where(e => e.Dob >= new DateTime(1980, 1, 1) && e.Dob <= new DateTime(1990, 12, 31))
+                                 .ToListAsync();
         }
 
-        public List<Employee> GetFemaleEmployeeBornAfter1990()
+        public async Task<IEnumerable<Employee>> GetFemaleEmployeeBornAfter1990()
         {
-            return _context.Employees
-                .Where(e => e.Sex == "Female" && e.Dob > new DateTime(1990,12,31))
-                .ToList();
+            return await _context.Employees
+                                 .Where(e => e.Sex == "Female" && e.Dob > new DateTime(1990, 12, 31))
+                                 .ToListAsync();
         }
+        
+        public async Task<IEnumerable<Employee>> GetFemaleManagers()
+        {
+            return await _context.Employees
+                .Join(_context.Departments, e=> e.Empno, d => d.Mgrempno, (e,d) => e)
+                .Where(e => e.Sex == "Female")
+                .OrderBy(e=> e.Fname)
+                .ThenBy(e => e.Lname).ToListAsync();
+        }
+        public async Task<IEnumerable<Employee>> GetNonManagerEmployees()
+        {
+            var managers = _context.Departments.Select(d => d.Mgrempno).ToList();
+            return await _context.Employees
+                .Where(e => !managers.Contains(e.Empno))
+                .ToListAsync();
+        }
+       
     }
 }

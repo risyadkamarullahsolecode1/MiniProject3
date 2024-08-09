@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MiniProject3.Interfaces;
 using MiniProject3.Models;
+using MiniProject3.Services;
 
 namespace MiniProject3.Controllers
 {
@@ -16,15 +17,15 @@ namespace MiniProject3.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Project>> GetProjects()
+        public async Task<ActionResult<IEnumerable<Project>>> GetAllProjects()
         {
-            return Ok(_projectService.GetAllProjects());
+            return Ok(await _projectService.GetAllProjects());
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Project> GetProject(int id)
+        public async Task<ActionResult<Project>> GetProjectById(int id)
         {
-            var project = _projectService.GetProjectById(id);
+            var project = await _projectService.GetProjectById(id);
             if (project == null)
             {
                 return NotFound();
@@ -33,38 +34,53 @@ namespace MiniProject3.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Project> AddProject([FromBody]ProjectDto projectDto)
+        public async Task<ActionResult<Project>> AddProject(Project project)
         {
-            var project = new Project
-            {
-                Projno = projectDto.Projno,
-                Projname = projectDto.Projname,
-                Deptno = projectDto.Deptno
-            };
-            var newProject = _projectService.AddProject(project);
-            return CreatedAtAction(nameof(GetProject), new { id = newProject.Projno }, newProject);
+            var createdProject = await _projectService.AddProject(project);
+            return CreatedAtAction(nameof(GetProjectById), new { id = createdProject.Projno }, createdProject);
         }
 
         [HttpPut("{id}")]
-        public IActionResult PutProject(int id, Project project)
+        public async Task<IActionResult> UpdateProject(int id, Project project)
         {
-            var updatedProject = _projectService.UpdateProject(id, project);
-            if (updatedProject == null)
+            if (id != project.Projno)
             {
                 return BadRequest();
             }
-            return Ok(updatedProject);
-        }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteProject(int id)
-        {
-            var success = _projectService.DeleteProject(id);
-            if (!success)
+            var updatedProject = await _projectService.UpdateProject(id, project);
+            if (updatedProject == null)
             {
                 return NotFound();
             }
             return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteDepartment(int id)
+        {
+            var deleted = await _projectService.DeleteProject(id);
+            if (!deleted)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+        //method controller
+        [HttpGet("managed-byPlanning")]
+        public async Task<ActionResult<IEnumerable<Project>>> GetProjectsManagedByPlanning()
+        {
+            return Ok(await _projectService.GetProjectsManagedByPlanning());
+        }
+        [HttpGet("project-with-NoEmployee")]
+        public async Task<ActionResult<IEnumerable<Project>>> GetProjectsWithNoEmployees()
+        {
+            return Ok(await _projectService.GetProjectsWithNoEmployees());
+        }
+        [HttpGet("managed-by-FemaleManagers")]
+        public async Task<ActionResult<IEnumerable<object>>> GetProjectsManagedByFemaleManagers()
+        {
+            return Ok(await _projectService.GetProjectsManagedByFemaleManagers());
         }
     }
 }

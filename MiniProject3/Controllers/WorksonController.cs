@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MiniProject3.Interfaces;
 using MiniProject3.Models;
+using MiniProject3.Services;
 
 namespace MiniProject3.Controllers
 {
@@ -16,52 +17,50 @@ namespace MiniProject3.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Workson>> GetWorkOns()
+        public async Task<ActionResult<IEnumerable<Workson>>> GetAllProjects()
         {
-            return Ok(_worksonService.GetAllWorkOns());
+            return Ok(await _worksonService.GetAllWorkOn());
         }
 
         [HttpGet("{empNo}/{projNo}")]
-        public ActionResult<Workson> GetWorkOn(int empNo, int projNo)
+        public async Task<ActionResult<Workson>> GetWorkOnById(int empNo, int projNo)
         {
-            var workOn = _worksonService.GetWorkOnById(empNo, projNo);
-            if (workOn == null)
+            var project = await _worksonService.GetWorkOnById(empNo, projNo);
+            if (project == null)
             {
                 return NotFound();
             }
-            return Ok(workOn);
+            return Ok(project);
         }
 
         [HttpPost]
-        public ActionResult<Workson> PostWorkOn([FromBody] WorksonDto worksonDto)
+        public async Task<ActionResult<Workson>> AddProject(Workson workson)
         {
-            var workson = new Workson
-            {
-                Empno = worksonDto.Empno,
-                Projno = worksonDto.Projno,
-                Dateworked = worksonDto.Dateworked,
-                Hoursworked = worksonDto.Hoursworked
-            };
-            var newWorkOn = _worksonService.AddWorkOn(workson);
-            return CreatedAtAction(nameof(GetWorkOn), new { empNo = newWorkOn.Empno, projNo = newWorkOn.Projno, dateWorked = newWorkOn.Dateworked }, newWorkOn);
+            var createdWorkson = await _worksonService.AddWorkOn(workson);
+            return CreatedAtAction(nameof(GetWorkOnById), new { id = createdWorkson.Projno }, createdWorkson);
         }
 
         [HttpPut("{empNo}/{projNo}")]
-        public IActionResult PutWorkOn(int empNo, int projNo,Workson workOn)
+        public async Task<IActionResult> UpdateProject(int empNo,int projNo, Workson workson)
         {
-            var updatedWorkOn = _worksonService.UpdateWorkOn(empNo, projNo, workOn);
-            if (updatedWorkOn == null)
+            if (empNo != workson.Empno)
             {
                 return BadRequest();
             }
-            return Ok(updatedWorkOn);
+
+            var updatedWorkson = await _worksonService.UpdateWorkOn(empNo, projNo, workson);
+            if (updatedWorkson == null)
+            {
+                return NotFound();
+            }
+            return NoContent();
         }
 
         [HttpDelete("{empNo}/{projNo}")]
-        public IActionResult DeleteWorkOn(int empNo, int projNo)
+        public async Task<IActionResult> DeleteWorkOn(int empNo, int projNo)
         {
-            var success = _worksonService.DeleteWorkOn(empNo, projNo);
-            if (!success)
+            var deleted = await _worksonService.DeleteWorkOn(empNo, projNo);
+            if (!deleted)
             {
                 return NotFound();
             }
